@@ -4,13 +4,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
+
 
 class ProductController extends Controller
 {
     public function index()
-    {
-        return response()->json(Product::all(), 200);
-    }
+{
+    $products = Product::all()->map(function ($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'material' => $product->material,
+            'category' => $product->category,
+            'stock' => $product->stock,
+            'status' => $product->status,
+            'image' => $product->image ? asset('storage/' . $product->image) : null,
+        ];
+    });
+
+    return response()->json($products, 200);
+}
 
     public function store(Request $request)
     {
@@ -51,8 +67,13 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        return response()->json(Product::findOrFail($id), 200);
+        $product = Product::findOrFail($id);
+
+        $product->image = $product->image ? asset('storage/' . $product->image) : null;
+
+        return response()->json($product, 200);
     }
+
 
     public function update(Request $request, Product $product)
     {
@@ -82,14 +103,17 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+    $product = Product::findOrFail($id);
 
-        $product->delete();
-
-        return response()->json([
-            'message' => 'Product deleted successfully!'
-        ], 204, $this->responseHeaders());
+    if ($product->image) {
+        Storage::disk('public')->delete($product->image);
     }
+
+    $product->delete();
+
+    return response()->json([
+        'message' => 'Product deleted successfully!'
+    ], 200);
+    }
+
 }

@@ -9,6 +9,8 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LogoController;
 use App\Http\Controllers\SocialMediaLinkController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 
 Route::group([
     'middleware' => 'api',
@@ -26,7 +28,7 @@ Route::group([
 Route::group(['middleware' => 'api','prefix' => 'products'], function ($router) {
     Route::get('/', [ProductController::class, 'index']);
     Route::post('/product', [ProductController::class, 'store']);
-    Route::get('/product={id}', [ProductController::class, 'show']);
+    Route::get('/{id}', [ProductController::class, 'show']);
     Route::put('/{id}', [ProductController::class, 'update']);
     Route::delete('/{id}', [ProductController::class, 'destroy']);
 });
@@ -36,7 +38,7 @@ Route::group(['middleware' => 'api','prefix' => 'slideshows'], function ($router
     Route::get('/', [SlideshowController::class, 'index']);
     Route::post('/slideshow', [SlideshowController::class, 'store']);
     Route::get('/{id}', [SlideshowController::class, 'show']);
-    Route::put('/{id}', [SlideshowController::class, 'update']);
+    Route::put('/slideshow={id}', [SlideshowController::class, 'update']);
     Route::delete('/{id}', [SlideshowController::class, 'destroy']);
 });
 
@@ -76,10 +78,27 @@ Route::put('/{id}', [LogoController::class, 'update']);
 Route::delete('/{id}', [LogoController::class, 'destroy']);
 });
 
+// Social-link Routes
 Route::group(['middleware' => 'api','prefix' => 'social-links'], function ($router) {
 Route::get('/', [SocialMediaLinkController::class, 'index']);
 Route::post('/social-link', [SocialMediaLinkController::class, 'store']);
 Route::get('/{id}', [SocialMediaLinkController::class, 'show']);
 Route::put('/{id}', [SocialMediaLinkController::class, 'update']);
 Route::delete('/{id}', [SocialMediaLinkController::class, 'destroy']);
+});
+
+// Cart Routes
+Route::group(['middleware' => 'api', 'prefix' => 'carts'], function () {
+    Route::get('/', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/{id}', [CartController::class, 'update']); // ✅ should be PUT, not DELETE
+    Route::delete('/{id}', [CartController::class, 'destroy']);
+    Route::delete('/clear', [CartController::class, 'clear']); // ✅ now this will work!
+});
+
+
+Route::group(['middleware' => 'api','prefix' => 'orders'], function ($router) {
+Route::post('/order', [OrderController::class, 'store']);
+Route::get('/', [OrderController::class, 'index']);     // Get all orders
+Route::get('/{id}', [OrderController::class, 'show']); // Get one order
 });
