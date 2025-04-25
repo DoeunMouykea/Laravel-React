@@ -15,8 +15,12 @@ class SocialMediaLinkController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'platform' => 'required|string|max:50',
-            'url' => 'required|url'
+            'facebook' => 'nullable|url',
+            'youtube' => 'nullable|url',
+            'twitter' => 'nullable|url',
+            'telegram' => 'nullable|url',
+            'pinterest' => 'nullable|url',
+            'instagram' => 'nullable|url',
         ]);
 
         $link = SocialMediaLink::create($request->all());
@@ -31,8 +35,12 @@ class SocialMediaLinkController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'platform' => 'sometimes|required|string|max:50',
-            'url' => 'sometimes|required|url'
+            'facebook' => 'nullable|url',
+            'youtube' => 'nullable|url',
+            'twitter' => 'nullable|url',
+            'telegram' => 'nullable|url',
+            'pinterest' => 'nullable|url',
+            'instagram' => 'nullable|url',
         ]);
 
         $link = SocialMediaLink::findOrFail($id);

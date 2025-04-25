@@ -1,9 +1,11 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useCart } from './CartContext';
 
 export default function OrderConfirmation() {
     const { state } = useLocation();
     const navigate = useNavigate();
+    const { clearCart } = useCart();
 
     const {
         customer,
@@ -17,17 +19,8 @@ export default function OrderConfirmation() {
     } = state || {};
 
     const handleReturnToStore = () => {
-        fetch('http://127.0.0.1:8000/api/carts/clear', {
-            method: 'DELETE'
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to clear cart');
-                navigate('/');
-            })
-            .catch(err => {
-                console.error('Error clearing cart:', err);
-                alert('Something went wrong while clearing your cart.');
-            });
+        clearCart(); // ✅ Just clear local cart
+        navigate('/'); // ✅ Then go home
     };
 
     return (

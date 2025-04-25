@@ -8,7 +8,7 @@ export default function LatestProduct() {
         fetch('http://127.0.0.1:8000/api/products')
             .then(res => res.json())
             .then(data => {
-                const latest = data.slice(-4).reverse(); // last 4 products, newest first
+                const latest = data.slice(5, 9).reverse(); // last 4 products, newest first
                 setProducts(latest);
             })
             .catch(err => console.error('Failed to load products', err));

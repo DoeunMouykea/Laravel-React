@@ -9,8 +9,12 @@ return new class extends Migration {
     {
         Schema::create('social_media_links', function (Blueprint $table) {
             $table->id();
-            $table->string('platform'); // e.g., Facebook, Twitter
-            $table->string('url');      // e.g., https://facebook.com/yourpage
+            $table->string('facebook')->nullable();
+            $table->string('youtube')->nullable();
+            $table->string('twitter')->nullable();
+            $table->string('telegram')->nullable();
+            $table->string('pinterest')->nullable();
+            $table->string('instagram')->nullable();
             $table->timestamps();
         });
     }

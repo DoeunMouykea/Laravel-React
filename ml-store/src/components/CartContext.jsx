@@ -1,41 +1,63 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Create a context for the cart
 const CartContext = createContext();
 
-export function useCart() {
+// Custom hook to use cart
+export const useCart = () => {
     return useContext(CartContext);
-}
+};
 
-export function CartProvider({ children }) {
-    const [cartCount, setCartCount] = useState(0);
+// CartProvider component that will wrap the application
+export const CartProvider = ({ children }) => {
+    const storedCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const [cartItems, setCartItems] = useState(storedCart);
 
-    const addToCart = async (productId, quantity) => {
-        try {
-            const res = await fetch('http://127.0.0.1:8000/api/carts/cart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: quantity
-                })
-            });
+    useEffect(() => {
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }, [cartItems]);
 
-            if (res.ok) {
-                // Optionally parse the response
-                setCartCount(prev => prev + quantity); // Update count
+    // Function to add item to cart
+    const addToCart = (productId, quantity, productData) => {
+        setCartItems((prevItems) => {
+            const existingItem = prevItems.find(item => item.id === productId);
+            if (existingItem) {
+                return prevItems.map(item =>
+                    item.id === productId
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
             } else {
-                console.error('Failed to add to cart');
+                return [...prevItems, { ...productData, quantity }];
             }
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-        }
+        });
     };
 
+    // Function to remove item from cart
+    const removeFromCart = (productId) => {
+        setCartItems((prevItems) => prevItems.filter(item => item.id !== productId));
+    };
+
+    // Function to update quantity of an item
+    const updateQuantity = (productId, quantity) => {
+        setCartItems((prevItems) => {
+            return prevItems.map(item =>
+                item.id === productId ? { ...item, quantity } : item
+            );
+        });
+    };
+
+    // Function to clear the cart
+    const clearCart = () => {
+        setCartItems([]);
+    };
+
+    // Deriving the cart count from cartItems
+    const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
     return (
-        <CartContext.Provider value={{ cartCount, addToCart }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount }}>
             {children}
         </CartContext.Provider>
     );
-}
+};

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useCart } from '../components/CartContext';  // Import the CartContext
+import { PayPalButtons } from "@paypal/react-paypal-js";
 import img2 from '../components/asset/icons/mastercard.jpg';
 import img1 from '../components/asset/icons/paypal.jpg';
+import { useNavigate } from 'react-router-dom';
 
 export default function CheckOut() {
-    const [cartItems, setCartItems] = useState([]);
-    const [subtotal, setSubtotal] = useState(0);
+    const { cartItems } = useCart();  // Access cartItems from CartContext
     const [shipping] = useState(1);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -15,25 +16,18 @@ export default function CheckOut() {
     const [zip, setZip] = useState('');
     const [phone, setPhone] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
-
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetch('http://127.0.0.1:8000/api/carts/')
-            .then(res => res.json())
-            .then(data => {
-                const items = Array.isArray(data) ? data : data.cart || [];
-                setCartItems(items);
-                const total = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
-                setSubtotal(total);
-            })
-            .catch(err => console.error("Failed to fetch cart:", err));
-    }, []);
+    // Calculate the subtotal based on cart items
+    const calculateSubtotal = () => {
+        return cartItems.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
+    };
 
+    const subtotal = calculateSubtotal();
     const total = subtotal + shipping;
 
     const handleSubmit = (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
 
         const orderData = {
             first_name: firstName,
@@ -62,7 +56,6 @@ export default function CheckOut() {
         })
             .then(async res => {
                 const text = await res.text();
-                console.log("Raw backend response:", text); // 🔍 debugging line
                 try {
                     const data = JSON.parse(text);
                     navigate('/order-confirmation', {
@@ -93,7 +86,6 @@ export default function CheckOut() {
                 alert('Failed to place order. Please try again later.');
             });
     };
-
 
     return (
         <>
@@ -166,7 +158,7 @@ export default function CheckOut() {
                                         {cartItems.map((item, index) => (
                                             <div key={index} className="d-flex mb-2 align-items-center">
                                                 <img
-                                                    src={`http://127.0.0.1:8000/storage/${item.image || 'products/default.jpg'}`}
+                                                    src={`${item.image || 'products/default.jpg'}`}
                                                     alt={item.name}
                                                     width="40"
                                                     className="mr-2"
@@ -222,7 +214,33 @@ export default function CheckOut() {
                                             <label htmlFor="cod">Pay when you get the package</label>
                                         </li>
                                     </ul>
-                                    <button type="submit" className="btn btn-primary mt-3">Place your order</button>
+
+                                    {paymentMethod === 'paypal' && (
+                                        <div className="mt-3 ">
+                                            <PayPalButtons
+                                                style={{ layout: "vertical" }}
+                                                createOrder={(data, actions) => {
+                                                    return actions.order.create({
+                                                        purchase_units: [{
+                                                            amount: {
+                                                                value: total.toFixed(2)
+                                                            }
+                                                        }]
+                                                    });
+                                                }}
+                                                onApprove={(data, actions) => {
+                                                    return actions.order.capture().then((details) => {
+                                                        alert("Transaction completed by " + details.payer.name.given_name);
+                                                        handleSubmit({ preventDefault: () => { } });
+                                                    });
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {paymentMethod !== 'paypal' && (
+                                        <button type="submit" className="btn btn-primary mt-3">Place your order</button>
+                                    )}
                                 </div>
                             </div>
                         </div>

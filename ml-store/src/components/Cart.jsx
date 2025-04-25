@@ -1,48 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useCart } from './CartContext';
 import { Link } from 'react-router-dom';
 
 export default function Cart() {
-    const [cartItems, setCartItems] = useState([]);
-    const [subtotal, setSubtotal] = useState(0);
+    const { cartItems, removeFromCart, updateQuantity } = useCart();
 
-    useEffect(() => {
-        fetchCartItems();
-    }, []);
-
-    const fetchCartItems = () => {
-        fetch('http://127.0.0.1:8000/api/carts/')
-            .then(res => res.json())
-            .then(data => {
-                setCartItems(data || []);
-                calculateSubtotal(data || []);
-            })
-            .catch(err => console.error("Failed to load cart items:", err));
-    };
-
-    const calculateSubtotal = (items) => {
-        const total = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
-        setSubtotal(total);
-    };
-
-    const handleQuantityChange = (id, newQuantity) => {
-        const updatedCart = cartItems.map(item =>
-            item.id === id ? { ...item, quantity: newQuantity } : item
-        );
-        setCartItems(updatedCart);
-        calculateSubtotal(updatedCart);
-        // Optional: Update quantity in backend here
-    };
-
-    const handleRemove = (id) => {
-        fetch(`http://127.0.0.1:8000/api/carts/${id}`, {
-            method: 'DELETE',
-        })
-            .then(() => {
-                const updatedCart = cartItems.filter(item => item.id !== id);
-                setCartItems(updatedCart);
-                calculateSubtotal(updatedCart);
-            })
-            .catch(err => console.error("Failed to remove item:", err));
+    const calculateSubtotal = () => {
+        return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     };
 
     return (
@@ -67,7 +31,7 @@ export default function Cart() {
                                         <tr key={index}>
                                             <td>
                                                 <img
-                                                    src={`http://127.0.0.1:8000/storage/${item.image || 'products/default.jpg'}`}
+                                                    src={item.image || 'img/product/default.jpg'}
                                                     width="50"
                                                     alt={item.name}
                                                 />
@@ -81,15 +45,15 @@ export default function Cart() {
                                                     value={item.quantity}
                                                     min="1"
                                                     onChange={(e) =>
-                                                        handleQuantityChange(item.id, parseInt(e.target.value))
+                                                        updateQuantity(item.id, parseInt(e.target.value))
                                                     }
                                                 />
                                             </td>
-                                            <td>${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+                                            <td>${(item.price * item.quantity).toFixed(2)}</td>
                                             <td>
                                                 <button
                                                     className="btn btn-danger"
-                                                    onClick={() => handleRemove(item.id)}
+                                                    onClick={() => removeFromCart(item.id)}
                                                 >
                                                     Remove
                                                 </button>
@@ -116,7 +80,7 @@ export default function Cart() {
                                     <span className="stext-110 cl2">Subtotal:</span>
                                 </div>
                                 <div className="size-209">
-                                    <span className="mtext-110 cl2">${subtotal.toFixed(2)}</span>
+                                    <span className="mtext-110 cl2">${calculateSubtotal().toFixed(2)}</span>
                                 </div>
                             </div>
 
@@ -125,7 +89,7 @@ export default function Cart() {
                                     <span className="mtext-101 cl2">Total:</span>
                                 </div>
                                 <div className="size-209 p-t-1">
-                                    <span className="mtext-110 cl2">${subtotal.toFixed(2)}</span>
+                                    <span className="mtext-110 cl2">${calculateSubtotal().toFixed(2)}</span>
                                 </div>
                             </div>
 

@@ -10,18 +10,21 @@ export default function ProductDetail() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Fetch product details by ID
         fetch(`http://127.0.0.1:8000/api/products/${id}`)
-            .then(res => res.json())
-            .then(data => setProduct(data))
-            .catch(err => console.error("Failed to fetch product:", err));
+            .then((res) => res.json())
+            .then((data) => setProduct(data))
+            .catch((err) => console.error('Failed to fetch product:', err));
     }, [id]);
 
     const handleAddToCart = () => {
-        addToCart(product.id, quantity);
-        navigate('/cart');
+        if (product) {
+            addToCart(product.id, quantity, product); // Add the product to the cart
+            navigate('/cart'); // Navigate to the cart page
+        }
     };
 
-    if (!product) return <div className="text-center mt-5">Loading...</div>;
+    if (!product) return <div>Loading...</div>;
 
     return (
         <section className="product-page">
@@ -41,10 +44,6 @@ export default function ProductDetail() {
                             <h2>{product.name}</h2>
                             <h5>${product.price}</h5>
                             <p>{product.description}</p>
-                            <ul className="tags">
-                                <li><span>Category:</span> {product.category}</li>
-                                <li><span>Material:</span> {product.material}</li>
-                            </ul>
                             <input
                                 type="number"
                                 value={quantity}
