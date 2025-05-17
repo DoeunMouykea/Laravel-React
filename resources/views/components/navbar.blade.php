@@ -437,7 +437,8 @@
                 </div>
             </li>
 
-        <li class="nav-item nav-category">Help</li>
+
+            <li class="nav-item nav-category">Help</li>
         <li class="nav-item">
             <a class="nav-link" href="/showcontact">
             <i class="menu-icon mdi mdi-account-card-details"></i>
